@@ -29,7 +29,6 @@ permissions:
   deployments: none
   issues: none
   packages: none
-  pull-requests: read
   repository-projects: none
   statuses: none
 
