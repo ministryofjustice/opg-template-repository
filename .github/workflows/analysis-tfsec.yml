@@ -1,4 +1,4 @@
-name: TFSec Static analysis
+name: "[Analysis] TFSec"
 
 on:
   pull_request:
