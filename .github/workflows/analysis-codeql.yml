@@ -20,6 +20,19 @@ on:
   schedule:
     - cron: '0 5 * * *'
 
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+  actions: none
+  checks: none
+  deployments: none
+  issues: none
+  packages: none
+  pull-requests: read
+  repository-projects: none
+  statuses: none
+
 jobs:
   analyze:
     name: Analyze
