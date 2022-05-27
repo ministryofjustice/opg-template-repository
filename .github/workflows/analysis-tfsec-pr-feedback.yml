@@ -1,4 +1,4 @@
-name: "[Analysis] TFSec"
+name: "[Analysis] TFSec PR feedback"
 
 on:
   pull_request:
