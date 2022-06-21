@@ -1,7 +1,7 @@
 name: "[Analysis - Application] CodeQL SAST To Github Security"
 
 on:
-workflow_dispatch:
+  workflow_dispatch:
   push:
     branches: [ main, master ]
   schedule:
