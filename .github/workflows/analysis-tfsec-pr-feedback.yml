@@ -3,7 +3,7 @@ name: "[Analysis - Infrastructure] TFSec Pull Request Feedback"
 on:
   workflow_dispatch:
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
     paths:
       - "**.tf"
 
