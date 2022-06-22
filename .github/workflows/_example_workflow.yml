@@ -37,6 +37,7 @@ jobs:
 
   docker_build:
     name: "Build Docker images locally"
+    needs: [branch_name, codeql_analysis, tfsec_analysis]
     uses: ministryofjustice/opg-github-workflows/.github/workflows/build-containers-docker-build.yml@main
     with:
       image_data: ${{ toJSON('[{"name":"helloworld", "directory":"./service-app"}]') }}
