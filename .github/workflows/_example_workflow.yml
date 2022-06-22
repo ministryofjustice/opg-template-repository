@@ -38,25 +38,19 @@ jobs:
   # build containers
   docker_build:
     name: "Build Docker images locally"
-    runs-on: ubuntu-latest
     needs: [branch_name, codeql_analysis, tfsec_analysis]
-    steps:
-      - name: Build
-        uses: ministryofjustice/opg-github-workflows/.github/workflows/build-containers-docker-build.yml@main
-        with:
-          image_data: '[{"name":"helloworld", "directory":"./service-app"}]'
-      - name: test
-        run: |
-          docker images
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-containers-docker-build.yml@main
+    with:
+      image_data: '[{"name":"helloworld", "directory":"./service-app"}]'
 
-  # # dock tests
-  # docker_test:
-  #   name: "Docker test"
-  #   needs: [docker_build]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - run: |
-  #         docker images
+  # dock tests
+  docker_test:
+    name: "Docker test"
+    needs: [docker_build]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          docker images
 
 
   # # get a suitable tag
