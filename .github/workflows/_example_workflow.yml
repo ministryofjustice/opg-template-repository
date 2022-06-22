@@ -47,9 +47,10 @@ jobs:
   docker_test:
     name: "Docker test"
     needs: [docker_build]
+    runs-on: ubuntu-latest
     steps:
-      run: |
-        docker images
+      - run: |
+          docker images
 
 
   # # get a suitable tag
