@@ -47,8 +47,9 @@ jobs:
   docker_test:
     name: "Docker test"
     needs: [docker_build]
-    run: |
-      docker images
+    steps:
+      run: |
+        docker images
 
 
   # # get a suitable tag
