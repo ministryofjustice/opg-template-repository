@@ -8,11 +8,11 @@ on:
 permissions:
   actions: read
   checks: read
-  contents: write
+  contents: read
   deployments: none
   issues: none
   packages: none
-  pull-requests: write
+  pull-requests: read
   repository-projects: none
   security-events: write
   statuses: none
@@ -35,15 +35,21 @@ jobs:
     name: "Run TFSec against the code base"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@main
 
-  # get a suitable tag
-  create_tag:
-    name: "Create semvar tag"
-    needs: [branch_name]
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-semvar-tag.yml@main
+  docker_build:
+    name: "Build Docker images locally"
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-containers-docker-build.yml@main
     with:
-      branch_name: ${{ needs.branch_name.outputs.raw_branch_name }}
-    secrets:
-      source_github_token: ${{ secrets.GITHUB_TOKEN }}
+      image_data: ${{ toJSON('[{"name":"helloworld", "directory":"./service-app"}]') }}
+
+  # # get a suitable tag
+  # create_tag:
+  #   name: "Create semvar tag"
+  #   needs: [branch_name]
+  #   uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-semvar-tag.yml@main
+  #   with:
+  #     branch_name: ${{ needs.branch_name.outputs.raw_branch_name }}
+  #   secrets:
+  #     source_github_token: ${{ secrets.GITHUB_TOKEN }}
 
 
 
