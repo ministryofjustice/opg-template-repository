@@ -46,7 +46,7 @@ jobs:
   # dock tests
   docker_test:
     name: "Docker test"
-    needs: [docker_build:]
+    needs: [docker_build]
     run: |
       docker images
 
