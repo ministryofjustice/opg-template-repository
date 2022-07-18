@@ -24,6 +24,12 @@ jobs:
     name: "Generate a safe branch name"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-branch-name.yml@main
   
+  # generate workspace name
+  workspace_name:
+    name: "Generate the workspace name"
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-workspace.yml@main
+  
+
   # LINTING
   # run linting for terraform
   tf_lint:
@@ -54,7 +60,9 @@ jobs:
     name: "Run TFSec against the code base"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@main
   
-
+  # Docker build, trivy scan, ECR push as a matrix
+  # The matrix loops over each app to build in a complicated
+  # structure
   build_scan_push:
     runs-on: ubuntu-latest
     name: "Docker build, trivy scan, ECR push"
@@ -63,59 +71,49 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
+        # services to scan over
         data:
           - docker_build_directory: "./service-app"
             image_app_name: "helloworld"    
     env:
-      docker_image: ${{ matrix.data.image_app_name }}:latest
+      local_docker_image: ${{ matrix.data.image_app_name }}:latest
       sarif_file: trivy-results.sarif
     steps:
       - uses: actions/checkout@v3
+      # we use these a few times, so easier to generate them once and env
+      # vars are visible in the output, so helps with debug
       - name: Set environment values
         run: |
-          echo "docker_image: ${{ env.docker_image }}"
+          echo "local_docker_image: ${{ env.local_docker_image }}"
           echo "sarif_file: ${{ env.sarif_file }}"
+      # build our sample docker image
       - name: Docker build
+          # set the working directory to the variable
         working-directory: ${{ matrix.data.docker_build_directory }}
-        run: docker build -t ${{ env.docker_image }} .
+        run: docker build -t ${{ env.local_docker_image }} .
+      # to check if things worked, output docker image list
       - name: Docker image list
         run: docker images
       - name: Trivy scan
         uses: aquasecurity/trivy-action@0.5.1
         with:
-          image-ref: ${{ env.docker_image }}
+          image-ref: ${{ env.local_docker_image }}
           severity: "HIGH,CRITICAL"
           format: 'sarif'
           output: ${{ env.sarif_file }}
-      - name: List files
-        run: |
-          pwd
-          ls -lart
       - name: Trivy scan upload to github
         uses: github/codeql-action/upload-sarif@v2
         if: always()
         with:
           sarif_file: ${{ env.sarif_file }}
+      # for a lot of our services, there could be a test process here before things are
+      # pushed to ECR, but this will vary a lot
+
+      - 
       
 
 
 
-  # # build containers
-  # docker_build:
-  #   name: "Build Docker images locally"
-  #   needs: [branch_name, codeql_analysis, tfsec_analysis]
-  #   uses: ministryofjustice/opg-github-workflows/.github/workflows/build-containers-docker-build.yml@main
-  #   with:
-  #     image_data: '[{"name":"helloworld1", "directory":"./service-app"}, {"name":"helloworld2", "directory":"./service-app"}]'
-
-  # # dock tests
-  # docker_test:
-  #   name: "Docker test"
-  #   needs: [docker_build]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - run: |
-  #         docker images
 
 
   # # get a suitable tag
