@@ -68,7 +68,7 @@ jobs:
             image_app_name: "helloworld"    
     env:
       docker_image: ${{ matrix.data.image_app_name }}:latest
-      sarif_file: ${{ format('trivy-results-{0}.sarif', matrix.data.image_app_name) }}
+      sarif_file: ${{ format('./trivy-results-{0}.sarif', matrix.data.image_app_name) }}
     steps:
       - uses: actions/checkout@v3
       - name: Set environment values
