@@ -80,6 +80,10 @@ jobs:
           severity: "HIGH,CRITICAL"
           format: 'sarif'
           output: ${{ format('trivy-results-{0}.sarif', matrix.data.image_app_name) }}
+      - name: List files
+        run: |
+        pwd
+        ls -lart
       - name: Trivy scan upload to github
         uses: github/codeql-action/upload-sarif@v2
         if: always()
