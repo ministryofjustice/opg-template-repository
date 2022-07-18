@@ -24,6 +24,7 @@ jobs:
     name: "Generate a safe branch name"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-branch-name.yml@main
   
+  # LINTING
   # run linting for terraform
   tf_lint:
     name: "Run terraform linting"
@@ -41,13 +42,14 @@ jobs:
       directory: "./service-app"
       python_version: "3.10.2"
 
-  # run various forms of analysis
+  # SAST
+  # codeql for pythong
   codeql_analysis:
     name: "Run CodeQL against the code base"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@main
     with:
       application_languages: '["python"]'
-
+  # tfsec for terraform 
   tfsec_analysis:
     name: "Run TFSec against the code base"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@main
