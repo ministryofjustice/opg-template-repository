@@ -55,6 +55,40 @@ jobs:
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@main
   
 
+  build_scan_push:
+    runs-on: ubuntu-latest
+    name: "Docker build, trivy scan, ECR push"
+    # require all steps before this matrix to have passed
+    needs: [branch_name, tf_lint, python_lint, codeql_analysis, tfsec_analysis]
+    
+    strategy:
+      fail-fast: true
+      matrix:
+        data:
+          - docker_build_directory: "./service-app"
+            image_app_name: "helloworld"    
+      steps:
+        - uses: actions/checkout@v3
+        - name: Docker build
+          working-directory: ${{ matrix.data.docker_build_directory }}
+          run: docker build -t ${{ matrix.data.image_app_name }}:latest .
+        - name: Docker image list
+          run: docker images
+        - name: Trivy scan
+          uses: aquasecurity/trivy-action@0.4.1
+          with:
+            image-ref: ${{ matrix.data.image_app_name }}:latest
+            severity: "HIGH,CRITICAL"
+            format: 'sarif'
+            output: ${{ format('trivy-results-{0}.sarif', matrix.data.image_app_name) }}
+        - name: Trivy scan upload to github
+          uses: github/codeql-action/upload-sarif@v2
+          if: always()
+          with:
+            sarif_file: ${{ format('trivy-results-{0}.sarif', matrix.data.image_app_name) }}
+        
+
+
 
   # # build containers
   # docker_build:
