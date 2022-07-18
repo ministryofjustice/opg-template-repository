@@ -75,7 +75,6 @@ jobs:
         run: docker images
       - name: Trivy scan
         uses: aquasecurity/trivy-action@0.4.1
-        working-directory: ${{ matrix.data.docker_build_directory }}
         with:
           image-ref: ${{ matrix.data.image_app_name }}:latest
           severity: "HIGH,CRITICAL"
@@ -83,7 +82,6 @@ jobs:
           output: ${{ format('trivy-results-{0}.sarif', matrix.data.image_app_name) }}
       - name: Trivy scan upload to github
         uses: github/codeql-action/upload-sarif@v2
-        working-directory: ${{ matrix.data.docker_build_directory }}
         if: always()
         with:
           sarif_file: ${{ format('trivy-results-{0}.sarif', matrix.data.image_app_name) }}
