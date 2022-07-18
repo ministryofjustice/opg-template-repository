@@ -29,7 +29,7 @@ jobs:
     name: "Generate the workspace name"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-workspace.yml@main
   
-# generate smevar tag
+  # generate smevar tag
   semvar_tag:
     name: "Generate the semvar tag value"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-semvar-tag.yml@main
@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Docker build, trivy scan, ECR push"
     # require all steps before this matrix to have passed
-    needs: [branch_name, workspace_name, tf_lint, python_lint, codeql_analysis, tfsec_analysis]
+    needs: [branch_name, workspace_name, semvar_tag, tf_lint, python_lint, codeql_analysis, tfsec_analysis]
     strategy:
       fail-fast: true
       matrix:
