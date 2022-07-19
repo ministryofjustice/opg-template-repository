@@ -87,13 +87,11 @@ jobs:
   # codeql for pythong
   codeql_analysis:
     name: "Run CodeQL against the code base"
-    needs: [variables_generated]
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@main
     with:
       application_languages: '["python"]'
   # tfsec for terraform 
   tfsec_analysis:
-    needs: [variables_generated]
     name: "Run TFSec against the code base"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@main
   
