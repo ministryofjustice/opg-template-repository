@@ -59,7 +59,6 @@ jobs:
   # run linting for terraform
   tf_lint:
     name: "Run terraform linting"
-    needs: [variable_generation_completed]
     uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@main
     with:
       directory: "./terraform"
@@ -69,19 +68,10 @@ jobs:
   # run linting for python
   python_lint:
     name: "Run python linting"
-    needs: [variable_generation_completed]
     uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-application-python.yml@main
     with:
       directory: "./service-app"
       python_version: "3.10.2"
-
-  # artificial step
-  linting_complete:
-    name: "Linting completed"
-    runs-on: "ubuntu-latest"
-    needs: [tf_lint, python_lint]
-    steps:
-      - run: ls -halo
 
   # SAST
   # codeql for pythong
@@ -95,15 +85,6 @@ jobs:
     name: "Run TFSec against the code base"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@main
   
-  
-  # artificial step
-  analysis_complete:
-    name: "Analysis completed"
-    runs-on: "ubuntu-latest"
-    needs: [codeql_analysis, tfsec_analysis]
-    steps:
-      - run: ls -halo
-  
   # Docker build, trivy scan, ECR push as a matrix
   # The matrix loops over each app to build in a complicated
   # structure
@@ -111,7 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Docker build, trivy scan, ECR push"
     # require all steps before this matrix to have passed
-    needs: [variable_generation_completed, linting_complete, analysis_complete]
+    needs: [variable_generation_completed, tf_lint, python_lint, codeql_analysis, tfsec_analysis]
     strategy:
       fail-fast: true
       matrix:
