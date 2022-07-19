@@ -135,21 +135,19 @@ jobs:
       # pushed to ECR, but this will vary a lot
 
       
-
-
-
-
-
-  # # get a suitable tag
-  # create_tag:
-  #   name: "Create semvar tag"
-  #   needs: [branch_name]
-  #   uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-semvar-tag.yml@main
+    # example terraform build stage
+  # terraform_build:
+  #   needs: [build_scan_push, workspace_name, semvar_tag, variable_generation_completed]
+  #   uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@main
   #   with:
-  #     branch_name: ${{ needs.branch_name.outputs.raw_branch_name }}
-  #   secrets:
-  #     source_github_token: ${{ secrets.GITHUB_TOKEN }}
-
+  #     terraform_version: "1.1.5"
+  #     terraform_directory: "./terraform"
+  #     terraform_workspace: "${{ needs.workspace_name.outputs.name }}"
+  #     terraform_apply: false
+  #     aws_account_id: ""
+  #     aws_iam_role: ""
+  #     semvar_tag: "${{ needs.semvar_tag.outputs.tag }}"
+  #     is_ephemeral: true
 
   end:
     name: 'End of workflow'
