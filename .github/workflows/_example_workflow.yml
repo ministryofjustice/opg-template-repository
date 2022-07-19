@@ -6,15 +6,16 @@ on:
     branches: [main]
 
 permissions:
+  contents: write
+  security-events: write
+
   actions: read
   checks: read
-  contents: read
   deployments: none
   issues: none
   packages: none
   pull-requests: read
   repository-projects: none
-  security-events: write
   statuses: none
 
 
@@ -28,11 +29,37 @@ jobs:
   workspace_name:
     name: "Generate the workspace name"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-workspace.yml@main
+  
+  # generate smevar tag
+  semvar_tag:
+    name: "Generate the semvar tag value"
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-semvar-tag.yml@main
+    with:
+      branch_name: ${{ needs.branch_name.outputs.parsed }}"
+    secrets: inherit
+
+  # artificial step to output vars for easier debugging
+  variable_generation_completed:
+    runs-on: "ubuntu-latest"
+    needs: [branch_name, workspace_name, semvar_tag]
+    name: "Generated standard variables"
+    steps:
+      - name: "Output generated variables"
+        run: |
+          echo "== BRANCH VARS  =="
+          echo "Raw: ${{ needs.branch_name.outputs.raw }}"
+          echo "Parsed: ${{ needs.branch_name.outputs.parsed }}"
+          echo "Alphanumeric: ${{ needs.branch_name.outputs.alphanumeric }}"
+          echo "== WORKSPACE VARS  =="
+          echo "Name: ${{ needs.workspace_name.outputs.name }}"
+          echo "== SEMVAR VARS  =="
+          echo "Tag: ${{ needs.semvar_tag.outputs.tag }}"
 
   # LINTING
   # run linting for terraform
   tf_lint:
     name: "Run terraform linting"
+    needs: [variable_generation_completed]
     uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@main
     with:
       directory: "./terraform"
@@ -42,22 +69,38 @@ jobs:
   # run linting for python
   python_lint:
     name: "Run python linting"
+    needs: [variable_generation_completed]
     uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-application-python.yml@main
     with:
       directory: "./service-app"
       python_version: "3.10.2"
 
+  # artificial step
+  linting_complete:
+    name: "Linting completed"
+    runs-on: "ubuntu-latest"
+    needs: [tf_lint, python_lint]
+
   # SAST
   # codeql for pythong
   codeql_analysis:
     name: "Run CodeQL against the code base"
+    needs: [variables_generated]
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@main
     with:
       application_languages: '["python"]'
   # tfsec for terraform 
   tfsec_analysis:
+    needs: [variables_generated]
     name: "Run TFSec against the code base"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@main
+  
+  
+  # artificial step
+  analysis_complete:
+    name: "Analysis completed"
+    runs-on: "ubuntu-latest"
+    needs: [codeql_analysis, tfsec_analysis]
   
   # Docker build, trivy scan, ECR push as a matrix
   # The matrix loops over each app to build in a complicated
@@ -66,7 +109,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Docker build, trivy scan, ECR push"
     # require all steps before this matrix to have passed
-    needs: [branch_name, workspace_name, tf_lint, python_lint, codeql_analysis, tfsec_analysis]
+    needs: [variable_generation_completed, linting_complete, analysis_complete]
     strategy:
       fail-fast: true
       matrix:
