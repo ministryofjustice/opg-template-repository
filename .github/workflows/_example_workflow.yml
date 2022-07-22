@@ -120,7 +120,7 @@ jobs:
       - name: Docker image list
         run: docker images
       - name: Trivy scan
-        uses: aquasecurity/trivy-action@0.5.1
+        uses: aquasecurity/trivy-action@0.6.0
         with:
           image-ref: ${{ env.local_docker_image }}
           severity: "HIGH,CRITICAL"
