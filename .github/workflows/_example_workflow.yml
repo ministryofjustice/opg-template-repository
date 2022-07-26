@@ -100,25 +100,27 @@ jobs:
         data:
           - docker_build_directory: "./service-app"
             image_app_name: "helloworld"    
+    # we use these a few times, so its easier to generate them once and env
+    # vars are visible in the output, so helps with debug
     env:
       local_docker_image: ${{ matrix.data.image_app_name }}:latest
       sarif_file: trivy-results.sarif
     steps:
       - uses: actions/checkout@v3
-      # we use these a few times, so easier to generate them once and env
-      # vars are visible in the output, so helps with debug
-      - name: Set environment values
+      - name: Show environment values
         run: |
           echo "local_docker_image: ${{ env.local_docker_image }}"
           echo "sarif_file: ${{ env.sarif_file }}"
       # build our sample docker image
       - name: Docker build
-          # set the working directory to the variable
+        # set the working directory to the variable
         working-directory: ${{ matrix.data.docker_build_directory }}
-        run: docker build -t ${{ env.local_docker_image }} .
+        run: |
+          docker build -t ${{ env.local_docker_image }} .
       # to check if things worked, output docker image list
       - name: Docker image list
-        run: docker images
+        run: |
+          docker images
       - name: Trivy scan
         uses: aquasecurity/trivy-action@0.5.1
         with:
@@ -136,18 +138,23 @@ jobs:
 
       
     # example terraform build stage
-  # terraform_build:
-  #   needs: [build_scan_push, workspace_name, semvar_tag, variable_generation_completed]
-  #   uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@main
-  #   with:
-  #     terraform_version: "1.1.5"
-  #     terraform_directory: "./terraform"
-  #     terraform_workspace: "${{ needs.workspace_name.outputs.name }}"
-  #     terraform_apply: false
-  #     aws_account_id: ""
-  #     aws_iam_role: ""
-  #     semvar_tag: "${{ needs.semvar_tag.outputs.tag }}"
-  #     is_ephemeral: true
+  terraform_build:
+    needs: [build_scan_push, workspace_name, semvar_tag, variable_generation_completed]
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@main
+    with:
+      terraform_version: "1.1.5"
+      terraform_directory: "./terraform/account"
+      # this would be replaced with the dynamic value from needs.workspace_name.output.name normally
+      # but we're just using sandbox account and single env, so use default
+      terraform_workspace: "default" 
+      terraform_apply: false
+      semvar_tag: "${{ needs.semvar_tag.outputs.tag }}"
+      # normally would need some logic to decide this, if its true we would then need to pass
+      # aws_account_id & aws_iam_role as well
+      is_ephemeral: false
+      # terraform variables in the form of -var="foo=bar"
+      terraform_variables: ""
+    secrets: inherit
 
   end:
     name: 'End of workflow'
