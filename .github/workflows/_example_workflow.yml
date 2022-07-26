@@ -139,7 +139,7 @@ jobs:
       
     # example terraform build stage
   terraform_build:
-    needs: [build_scan_push, workspace_name, semvar_tag, variable_generation_completed]
+    needs: [workspace_name, semvar_tag, build_scan_push]
     uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@main
     with:
       terraform_version: "1.1.5"
