@@ -148,7 +148,7 @@ jobs:
       # but we're just using sandbox account and single env, so use default
       terraform_workspace: "default" 
       terraform_apply: false
-      semvar_tag: "${{ needs.semvar_tag.outputs.tag }}"
+      semvar_tag: ${{ needs.semvar_tag.outputs.tag }}
       # normally would need some logic to decide this, if its true we would then need to pass
       # aws_account_id & aws_iam_role as well
       is_ephemeral: false
@@ -157,7 +157,7 @@ jobs:
   end:
     name: 'End of workflow'
     runs-on: 'ubuntu-latest'
-    needs: [build_scan_push, terraform_build]
+    needs: [build_scan_push, terraform_build, branch_name, workspace_name, semvar_tag, variable_generation_completed]
     steps:
       - name: "Output data"
         run: |
