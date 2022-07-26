@@ -28,8 +28,8 @@ provider "github" {
 }
 
 locals {
-  identity   = "631181914621"
-  sandbox    = "995199299616"
+  identity = "631181914621"
+  sandbox  = "995199299616"
 }
 
 provider "aws" {
