@@ -92,7 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Docker build, trivy scan, ECR push"
     # require all steps before this matrix to have passed
-    needs: [variable_generation_completed, tf_lint, python_lint, codeql_analysis, tfsec_analysis]
+    needs: [branch_name, workspace_name, semvar_tag, variable_generation_completed, tf_lint, python_lint, codeql_analysis, tfsec_analysis]
     strategy:
       fail-fast: true
       matrix:
