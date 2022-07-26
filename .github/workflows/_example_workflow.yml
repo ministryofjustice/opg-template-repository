@@ -137,7 +137,7 @@ jobs:
       # pushed to ECR, but this will vary a lot
 
       
-    # example terraform build stage
+  # example terraform build stage
   terraform_build:
     needs: [build_scan_push, workspace_name, semvar_tag, variable_generation_completed]
     uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@main
@@ -152,8 +152,6 @@ jobs:
       # normally would need some logic to decide this, if its true we would then need to pass
       # aws_account_id & aws_iam_role as well
       is_ephemeral: false
-      # terraform variables in the form of -var="foo=bar"
-      terraform_variables: ""
     secrets: inherit
 
   end:
