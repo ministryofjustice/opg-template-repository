@@ -154,7 +154,8 @@ jobs:
       # but we're just using sandbox account and single env, so use default
       terraform_workspace: "default" 
       # normally would need some logic to decide this based on branch name etc
-      # - if its true we would then need to pass aws_account_id & aws_iam_role as well
+      # - if its true we would then need to pass workspace_manager_aws_account_id & 
+      #   workspace_manager_aws_iam_role as well
       is_ephemeral: false
     secrets:
       AWS_ACCESS_KEY_ID_ACTIONS: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
