@@ -63,7 +63,7 @@ variable "aws_secret_access_key" {
 }
 
 variable "DEFAULT_ROLE" {
-  default = "ci"
+  default = "gh-workflow-example-ci"
 }
 
 
