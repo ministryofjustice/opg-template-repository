@@ -2,6 +2,8 @@ name: "[Example Workflow]"
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -89,8 +91,8 @@ jobs:
   # structure
   # ADD IN ECR PUSH
   build_scan_push:
-    runs-on: ubuntu-latest
     name: "Docker build, trivy scan, ECR push"
+    runs-on: ubuntu-latest
     # require all steps before this matrix to have passed
     needs: [branch_name, workspace_name, semvar_tag, variable_generation_completed, tf_lint, python_lint, codeql_analysis, tfsec_analysis]
     strategy:
@@ -137,20 +139,22 @@ jobs:
       # pushed to ECR, but this will vary a lot
 
       
-    # example terraform build stage
-  terraform_build:
+  # example terraform build stage
+  terraform_account_build:
+    name: "Terraform Account Plan and Apply"
     needs: [workspace_name, semvar_tag, build_scan_push]
     uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@main
     with:
+      semvar_tag: "${{ needs.semvar_tag.outputs.tag }}"
+
       terraform_version: "1.1.5"
       terraform_directory: "./terraform/account"
-      # this would be replaced with the dynamic value from needs.workspace_name.output.name normally
+      terraform_apply: true
+      # this would be replaced with the dynamic value from needs.workspace_name.output.name
       # but we're just using sandbox account and single env, so use default
       terraform_workspace: "default" 
-      terraform_apply: false
-      semvar_tag: "${{ needs.semvar_tag.outputs.tag }}"
-      # normally would need some logic to decide this, if its true we would then need to pass
-      # aws_account_id & aws_iam_role as well
+      # normally would need some logic to decide this based on branch name etc
+      # - if its true we would then need to pass aws_account_id & aws_iam_role as well
       is_ephemeral: false
     secrets:
       AWS_ACCESS_KEY_ID_ACTIONS: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
@@ -159,7 +163,7 @@ jobs:
   end:
     name: 'End of workflow'
     runs-on: 'ubuntu-latest'
-    needs: [branch_name, workspace_name, semvar_tag, variable_generation_completed, build_scan_push, terraform_build]
+    needs: [branch_name, workspace_name, semvar_tag, variable_generation_completed, build_scan_push, terraform_account_build]
     steps:
       - name: "Output data"
         run: |
