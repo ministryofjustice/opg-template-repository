@@ -28,18 +28,7 @@ provider "github" {
 }
 
 locals {
-  identity = "631181914621"
   sandbox  = "995199299616"
-}
-
-provider "aws" {
-  alias  = "identity"
-  region = "eu-west-1"
-
-  assume_role {
-    role_arn     = "arn:aws:iam::${local.identity}:role/${var.DEFAULT_ROLE}"
-    session_name = "terraform-session"
-  }
 }
 
 provider "aws" {
