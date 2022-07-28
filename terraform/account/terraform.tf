@@ -28,7 +28,7 @@ provider "github" {
 }
 
 locals {
-  sandbox  = "995199299616"
+  sandbox = "995199299616"
 }
 
 provider "aws" {
@@ -39,7 +39,6 @@ provider "aws" {
     session_name = "terraform-session"
   }
 }
-
 
 
 variable "github_token" {
