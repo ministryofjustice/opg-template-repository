@@ -175,8 +175,6 @@ jobs:
     needs: [workspace_name, semvar_tag, build_scan_push]
     uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@v1.6.0
     with:
-      semvar_tag: "${{ needs.semvar_tag.outputs.tag }}"
-
       terraform_version: "1.1.5"
       terraform_directory: "./terraform/account"
       terraform_apply: true
