@@ -102,6 +102,7 @@ jobs:
         data:
           - docker_build_directory: "./service-app"
             image_app_name: "helloworld"    
+            test_command: "ls -l"
     # we use these a few times, so its easier to generate them once and env
     # vars are visible in the output, so helps with debug
     env:
@@ -135,10 +136,37 @@ jobs:
         if: always()
         with:
           sarif_file: ${{ env.sarif_file }}
-      # for a lot of our services, there could be a test process here before things are
-      # pushed to ECR, but this will vary a lot
-
-      
+      # for a lot of our services, there could be a test process here 
+      - name: Run Tests
+        run: |
+          ${{ matrix.data.test_command }}
+      ######
+      ## Push to ECR
+      ######
+      - uses: unfor19/install-aws-cli-action@v1
+      - name: Configure AWS Credentials With Assumed Role to Management
+        uses: aws-actions/configure-aws-credentials@v1.6.1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::311462405659:role/gh-workflow-example-ci
+          role-duration-seconds: 900
+          role-session-name: OPGExampleWorkflowGithubAction
+      - name: ECR Login
+        id: login_ecr
+        uses: aws-actions/amazon-ecr-login@v1.5.0
+        with:
+          registries: 311462405659
+      - name: Push Container
+        env:
+          SEMVAR_TAG: ${{ needs.semvar_tag.outputs.tag }}
+          ECR_REGISTRY: ${{ steps.login_ecr.outputs.registry }}
+          ECR_REPOSITORY: github-workflow-example/helloworld
+        run: |
+          docker tag app:latest $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.SEMVAR_TAG }}
+          docker push --all-tags $ECR_REGISTRY/$ECR_REPOSITORY
+          
   # example terraform build stage
   terraform_account_build:
     name: "Terraform Account Plan and Apply"
