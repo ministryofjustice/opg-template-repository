@@ -33,6 +33,7 @@ jobs:
   
   # generate smevar tag
   semvar_tag:
+    needs: [branch_name]
     name: "Generate the semvar tag value"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-semvar-tag.yml@main
     with:
