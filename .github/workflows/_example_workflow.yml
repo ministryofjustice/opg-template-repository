@@ -61,7 +61,7 @@ jobs:
   # run linting for terraform
   tf_lint:
     name: "Run terraform linting"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@main
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@v1.6.0
     with:
       directory: "./terraform"
       terraform_version: "1.1.5"
@@ -70,7 +70,7 @@ jobs:
   # run linting for python
   python_lint:
     name: "Run python linting"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-application-python.yml@main
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-application-python.yml@v1.6.0
     with:
       directory: "./service-app"
       python_version: "3.10.2"
@@ -79,13 +79,13 @@ jobs:
   # codeql for pythong
   codeql_analysis:
     name: "Run CodeQL against the code base"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@main
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@v1.6.0
     with:
       application_languages: '["python"]'
   # tfsec for terraform 
   tfsec_analysis:
     name: "Run TFSec against the code base"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@main
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@v1.6.0
   
   # Docker build, trivy scan, ECR push as a matrix
   # The matrix loops over each app to build in a complicated
@@ -173,7 +173,7 @@ jobs:
   terraform_account_build:
     name: "Terraform Account Plan and Apply"
     needs: [workspace_name, semvar_tag, build_scan_push]
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@main
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@v1.6.0
     with:
       semvar_tag: "${{ needs.semvar_tag.outputs.tag }}"
 
@@ -190,6 +190,8 @@ jobs:
     secrets:
       AWS_ACCESS_KEY_ID_ACTIONS: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
       AWS_SECRET_ACCESS_KEY_ACTIONS: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+      PAGERDUTY_TOKEN: "NONE"
+      GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   end:
     name: 'End of workflow'
