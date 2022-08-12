@@ -165,7 +165,8 @@ jobs:
           ECR_REPOSITORY: github-workflow-example/helloworld
         run: |
           docker tag ${{ env.local_docker_image }} $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.SEMVAR_TAG }}
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY
+          docker tag ${{ env.local_docker_image }} $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push --all-tags $ECR_REGISTRY/$ECR_REPOSITORY
           
   # example terraform build stage
   terraform_account_build:
