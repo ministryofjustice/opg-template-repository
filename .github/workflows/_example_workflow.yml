@@ -54,7 +54,8 @@ jobs:
     needs: [tf_lint]
     name: "Run TFSec against the code base"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@v1.36.0
-  
+    secrets:
+      source_github_token: ${{ secrets.GITHUB_TOKEN }}
   # SAST
   # codeql for pythong
   codeql_analysis:
