@@ -137,6 +137,8 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
+          # management account role
+          role-to-assume: arn:aws:iam::311462405659:role/gh-template-repo-ci
           role-duration-seconds: 900
           role-session-name: OPGExampleWorkflowGithubAction
       - name: ECR Login
@@ -146,11 +148,11 @@ jobs:
           registries: 311462405659
       - name: Push Container
         env:
-          semver_TAG: ${{ needs.semver_tag.outputs.tag }}
+          SEMVER_TAG: ${{ needs.semver_tag.outputs.tag }}
           ECR_REGISTRY: ${{ steps.login_ecr.outputs.registry }}
           ECR_REPOSITORY: github-workflow-example/helloworld
         run: |
-          docker tag ${{ env.local_docker_image }} $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.semver_TAG }}
+          docker tag ${{ env.local_docker_image }} $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.SEMVER_TAG }}
           docker tag ${{ env.local_docker_image }} $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push --all-tags $ECR_REGISTRY/$ECR_REPOSITORY
           
