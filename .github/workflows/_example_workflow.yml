@@ -134,10 +134,11 @@ jobs:
       - name: Configure AWS Credentials With Assumed Role to Management
         uses: aws-actions/configure-aws-credentials@v3.0.1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::311462405659:role/gh-workflow-example-ci
+          # management account role
+          role-to-assume: arn:aws:iam::311462405659:role/gh-template-repo-ci
           role-duration-seconds: 900
           role-session-name: OPGExampleWorkflowGithubAction
       - name: ECR Login
@@ -147,11 +148,11 @@ jobs:
           registries: 311462405659
       - name: Push Container
         env:
-          semver_TAG: ${{ needs.semver_tag.outputs.tag }}
+          SEMVER_TAG: ${{ needs.semver_tag.outputs.tag }}
           ECR_REGISTRY: ${{ steps.login_ecr.outputs.registry }}
-          ECR_REPOSITORY: github-workflow-example/helloworld
+          ECR_REPOSITORY: github-template-repository/helloworld
         run: |
-          docker tag ${{ env.local_docker_image }} $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.semver_TAG }}
+          docker tag ${{ env.local_docker_image }} $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.SEMVER_TAG }}
           docker tag ${{ env.local_docker_image }} $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push --all-tags $ECR_REGISTRY/$ECR_REPOSITORY
           
@@ -172,8 +173,8 @@ jobs:
       #   workspace_manager_aws_iam_role as well
       is_ephemeral: false
     secrets:
-      AWS_ACCESS_KEY_ID_ACTIONS: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-      AWS_SECRET_ACCESS_KEY_ACTIONS: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+      AWS_ACCESS_KEY_ID_ACTIONS: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY_ACTIONS: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       PAGERDUTY_TOKEN: "NONE"
       GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
