@@ -4,7 +4,7 @@ locals {
 
   mandatory_moj_tags = {
     business-unit    = "OPG"
-    application      = "github-workflow-example"
+    application      = "github-template-repository"
     environment-name = local.environment
     owner            = "WebOps: opg-webops-community@digital.justice.gov.uk"
     is-production    = false
