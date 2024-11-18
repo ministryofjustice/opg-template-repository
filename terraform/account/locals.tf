@@ -1,5 +1,4 @@
 locals {
-  account     = local.sandbox
   environment = lower(terraform.workspace)
 
   mandatory_moj_tags = {
