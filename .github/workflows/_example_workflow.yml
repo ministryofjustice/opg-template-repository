@@ -21,20 +21,20 @@ permissions:
 
 
 jobs:
-  # generate a branch name  
+  # generate a branch name
   branch_name:
     name: "Generate a safe branch name"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-branch-name.yml@v1.36.0
-  
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-branch-name.yml@v3.1.0
+
   # generate workspace name
   workspace_name:
     name: "Generate the workspace name"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-workspace.yml@v1.36.0
-  
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-workspace.yml@v3.1.0
+
   tf_version:
     needs: [branch_name, workspace_name]
     name: "Get terraform version"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-terraform-version.yml@v1.36.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-terraform-version.yml@v3.1.0
     with:
       terraform_directory: "./terraform/account/"
 
@@ -43,31 +43,31 @@ jobs:
   tf_lint:
     needs: [tf_version]
     name: "Run terraform linting"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@v1.36.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@v3.1.0
     with:
       directory: "./terraform"
       terraform_version: "${{ needs.tf_version.outputs.version}}"
       terraform_wrapper: false
-  
-  # tfsec for terraform 
+
+  # tfsec for terraform
   tfsec_analysis:
     needs: [tf_lint]
     name: "Run TFSec against the code base"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@v1.36.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@v3.1.0
 
   # SAST
   # codeql for pythong
   codeql_analysis:
     name: "Run CodeQL against the code base"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@v1.36.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@v3.1.0
     with:
       application_languages: '["python"]'
-  
+
   # generate tag
   semver_tag:
     needs: [branch_name, tfsec_analysis, codeql_analysis]
     name: "Generate the semver tag value"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-semver-tag.yml@v1.36.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-semver-tag.yml@v3.1.0
     with:
       branch_name: ${{ needs.branch_name.outputs.parsed }}
     secrets: inherit
@@ -88,7 +88,7 @@ jobs:
         # services to scan over
         data:
           - docker_build_directory: "./service-app"
-            image_app_name: "helloworld"    
+            image_app_name: "helloworld"
             test_command: "ls -l"
     # we use these a few times, so its easier to generate them once and env
     # vars are visible in the output, so helps with debug
@@ -96,7 +96,7 @@ jobs:
       local_docker_image: ${{ matrix.data.image_app_name }}:latest
       sarif_file: trivy-results.sarif
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Show environment values
         run: |
           echo "local_docker_image: ${{ env.local_docker_image }}"
@@ -111,28 +111,9 @@ jobs:
       - name: Docker image list
         run: |
           docker images
-      - name: Trivy scan
-        uses: aquasecurity/trivy-action@0.11.2
-        with:
-          image-ref: ${{ env.local_docker_image }}
-          severity: "HIGH,CRITICAL"
-          format: 'sarif'
-          output: ${{ env.sarif_file }}
-      - name: Trivy scan upload to github
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: ${{ env.sarif_file }}
-      # for a lot of our services, there could be a test process here 
-      - name: Run Tests
-        run: |
-          ${{ matrix.data.test_command }}
-      ######
-      ## Push to ECR
-      ######
-      - uses: unfor19/install-aws-cli-action@v1
+      # log in to ECR
       - name: Configure AWS Credentials With Assumed Role to Management
-        uses: aws-actions/configure-aws-credentials@v3.0.1
+        uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -143,9 +124,31 @@ jobs:
           role-session-name: OPGExampleWorkflowGithubAction
       - name: ECR Login
         id: login_ecr
-        uses: aws-actions/amazon-ecr-login@v1.7.0
+        uses: aws-actions/amazon-ecr-login@v2.0.1
         with:
           registries: 311462405659
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@0.28.0
+        env:
+          TRIVY_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-db:2
+          TRIVY_JAVA_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-java-db:1
+        with:
+          image-ref: ${{ env.local_docker_image }}
+          severity: "HIGH,CRITICAL"
+          format: 'sarif'
+          output: ${{ env.sarif_file }}
+      - name: Trivy scan upload to github
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: ${{ env.sarif_file }}
+      # for a lot of our services, there could be a test process here
+      - name: Run Tests
+        run: |
+          ${{ matrix.data.test_command }}
+      ######
+      ## Push to ECR
+      ######
       - name: Push Container
         env:
           SEMVER_TAG: ${{ needs.semver_tag.outputs.tag }}
@@ -155,21 +158,21 @@ jobs:
           docker tag ${{ env.local_docker_image }} $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.SEMVER_TAG }}
           docker tag ${{ env.local_docker_image }} $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push --all-tags $ECR_REGISTRY/$ECR_REPOSITORY
-          
+
   # example terraform build stage
   terraform_account_build:
     name: "Terraform Account [Apply: ${{ github.ref == 'refs/heads/main'}}]"
     needs: [workspace_name, semver_tag, build_scan_push, tf_version]
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@v1.36.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@v3.1.0
     with:
       terraform_version: "${{ needs.tf_version.outputs.version}}"
       terraform_directory: "./terraform/account"
       terraform_apply: ${{ github.ref == 'refs/heads/main' && true || false }}
       # this would be replaced with the dynamic value from needs.workspace_name.output.name
       # but we're just using sandbox account and single env, so use default
-      terraform_workspace: "default" 
+      terraform_workspace: "default"
       # normally would need some logic to decide this based on branch name etc
-      # - if its true we would then need to pass workspace_manager_aws_account_id & 
+      # - if its true we would then need to pass workspace_manager_aws_account_id &
       #   workspace_manager_aws_iam_role as well
       is_ephemeral: false
     secrets:
