@@ -23,6 +23,10 @@ locals {
 provider "aws" {
   alias = "sandbox"
 
+  default_tags {
+    tags = local.default_tags
+  }
+
   assume_role {
     role_arn     = "arn:aws:iam::${local.sandbox}:role/${var.DEFAULT_ROLE}"
     session_name = "terraform-session"
@@ -31,15 +35,11 @@ provider "aws" {
 
 
 variable "github_token" {
-}
-
-variable "aws_access_key_id" {
-}
-
-variable "aws_secret_access_key" {
+  type = string
 }
 
 variable "DEFAULT_ROLE" {
+  type    = string
   default = "gh-template-repo-ci"
 }
 
