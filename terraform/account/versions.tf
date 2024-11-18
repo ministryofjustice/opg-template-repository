@@ -7,7 +7,7 @@ terraform {
     }
     github = {
       source  = "integrations/github"
-      version = "4.11.0"
+      version = "6.3.1"
     }
   }
   required_version = ">= 1.1.0"
