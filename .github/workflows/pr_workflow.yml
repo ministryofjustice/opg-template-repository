@@ -16,6 +16,7 @@ permissions:
 
 env:
   PRERELEASE: "true"
+  APPLY: false
 
 # jobs
 jobs:
@@ -176,13 +177,13 @@ jobs:
 
   # example terraform build stage
   terraform_account_build:
-    name: "Terraform Account [Apply: ${{ github.ref == 'refs/heads/main'}}]"
+    name: "Terraform Account [Apply: false ]"
     needs:
       - setup
       - build_scan_push
     uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@v3.16.0
     with:
-      terraform_apply: "false"
+      terraform_apply: ${{ env.APPLY }}
       terraform_version: "${{ needs.setup.outputs.terraform_version }}"
       terraform_directory: "./terraform/account"
       # this would be replaced with the dynamic value
