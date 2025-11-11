@@ -7,10 +7,10 @@ on:
 permissions:
   contents: write
   id-token: write
+  security-events: write
   actions: read
   checks: read
   pull-requests: read
-  security-events: none
 
 env:
   PRERELEASE: "false"
