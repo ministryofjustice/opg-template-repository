@@ -11,7 +11,6 @@ permissions:
 
 env:
   PRERELEASE: "false"
-  PATH_TO_LIVE: "true"
 
 # jobs
 jobs:
@@ -178,9 +177,9 @@ jobs:
       - build_scan_push
     uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@v3.16.0
     with:
+      terraform_apply: "true"
       terraform_version: "${{ needs.setup.outputs.terraform_version }}"
       terraform_directory: "./terraform/account"
-      terraform_apply: ${{ env.PATH_TO_LIVE }}
       # this would be replaced with the dynamic value
       terraform_workspace: ${{ needs.setup.outputs.terraform_workspace }}
       # normally would need some logic to decide this based on branch name etc
