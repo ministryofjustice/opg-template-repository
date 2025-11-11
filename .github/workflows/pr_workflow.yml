@@ -1,87 +1,101 @@
-name: "[Example Workflow]"
+name: "[Workflow] PR"
 
 on:
-  workflow_dispatch:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: write
+  id-token: write
   security-events: write
   actions: read
   checks: read
-  deployments: none
-  issues: none
-  packages: none
   pull-requests: read
-  repository-projects: none
-  statuses: none
 
 
+env:
+  PRERELEASE: "true"
+
+# jobs
 jobs:
-  # generate a branch name
-  branch_name:
-    name: "Generate a safe branch name"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-branch-name.yml@v3.1.0
-
-  # generate workspace name
-  workspace_name:
-    name: "Generate the workspace name"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-workspace.yml@v3.1.0
-
-  tf_version:
-    needs: [branch_name, workspace_name]
-    name: "Get terraform version"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-terraform-version.yml@v3.1.0
+  # setup provides all vars used in the process
+  setup:
+    name: "Set variables"
+    runs-on: ubuntu-latest
+    outputs:
+      # TERRAFORM
+      terraform_workspace: "default"
+      terraform_version: ${{ steps.terraform_account_version.outputs.version }}
+      # SEMVER & BRANCH NAMES
+      branch_name: ${{ steps.semver.outputs.branch }}
+      semver_tag: ${{ steps.semver.outputs.tag }}
+    steps:
+      # Check the code base
+      - name: "Checkout"
+        id: checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      # Find the terraform version details for account & env
+      - name: "Parse terraform account version"
+        id: terraform_account_version
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@4f345be3f706950d1fdc05bc86383967a149bd99 # v4.3.4
+        with:
+          terraform_directory: ./terraform/account
+      # semver tag
+      - name: "Semver tag"
+        id: "semver"
+        uses: ministryofjustice/opg-github-actions/actions/semver@4f345be3f706950d1fdc05bc86383967a149bd99 # v4.3.4
+        with:
+          create_release: "false" # dont create the release at the moment
+          prerelease: ${{ env.PRERELEASE }}
+  # terraform linting
+  terraform_lint:
+    name: "Terraform linting"
+    needs: [setup]
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@361d19a6d7b291dab5d46f04765239341a4ca86b # v3.16.0
     with:
-      terraform_directory: "./terraform/account/"
-
-  # LINTING
-  # run linting for terraform
-  tf_lint:
-    needs: [tf_version]
-    name: "Run terraform linting"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@v3.1.0
-    with:
-      directory: "./terraform"
-      terraform_version: "${{ needs.tf_version.outputs.version}}"
-      terraform_wrapper: false
-
+      terraform_version: ${{ needs.setup.outputs.terraform_version }}
   # tfsec for terraform
-  tfsec_analysis:
-    needs: [tf_lint]
+  tfsec:
+    needs: [setup, terraform_lint]
     name: "Run TFSec against the code base"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@v3.1.0
-
-  # SAST
-  # codeql for pythong
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@v3.16.0
+  # codeql for python
   codeql_analysis:
+    needs: [setup]
     name: "Run CodeQL against the code base"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@v3.1.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@v3.16.0
     with:
       application_languages: '["python"]'
 
-  # generate tag
-  semver_tag:
-    needs: [branch_name, tfsec_analysis, codeql_analysis]
-    name: "Generate the semver tag value"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/data-parse-semver-tag.yml@v3.1.0
-    with:
-      branch_name: ${{ needs.branch_name.outputs.parsed }}
-    secrets: inherit
-
+  # run all the tests
+  tests:
+    name: "Run Tests"
+    needs:
+      - setup
+      - codeql_analysis
+      - terraform_lint
+      - tfsec
+    runs-on: ubuntu-latest
+    steps:
+      # checkout self
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      # RUN TEST SUITE
+      - run: echo "RUN TEST SUITE HERE"
 
   # Docker build, trivy scan, ECR push as a matrix
   # The matrix loops over each app to build in a complicated
   # structure
-  # ADD IN ECR PUSH
   build_scan_push:
     name: "Docker build, trivy scan, ECR push"
     runs-on: ubuntu-latest
     # require all steps before this matrix to have passed
-    needs: [tf_version, branch_name, workspace_name, semver_tag]
+    needs:
+      - setup
+      - tests
     strategy:
       fail-fast: true
       matrix:
@@ -96,7 +110,7 @@ jobs:
       local_docker_image: ${{ matrix.data.image_app_name }}:latest
       sarif_file: trivy-results.sarif
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Show environment values
         run: |
           echo "local_docker_image: ${{ env.local_docker_image }}"
@@ -113,7 +127,7 @@ jobs:
           docker images
       # log in to ECR
       - name: Configure AWS Credentials With Assumed Role to Management
-        uses: aws-actions/configure-aws-credentials@v4.0.2
+        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -124,11 +138,11 @@ jobs:
           role-session-name: OPGExampleWorkflowGithubAction
       - name: ECR Login
         id: login_ecr
-        uses: aws-actions/amazon-ecr-login@v2.0.1
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
         with:
           registries: 311462405659
       - name: Trivy scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
         env:
           TRIVY_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-db:2
           TRIVY_JAVA_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-java-db:1
@@ -138,7 +152,7 @@ jobs:
           format: 'sarif'
           output: ${{ env.sarif_file }}
       - name: Trivy scan upload to github
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@5d5cd550d3e189c569da8f16ea8de2d821c9bf7a # v3.31.2
         if: always()
         with:
           sarif_file: ${{ env.sarif_file }}
@@ -151,7 +165,7 @@ jobs:
       ######
       - name: Push Container
         env:
-          SEMVER_TAG: ${{ needs.semver_tag.outputs.tag }}
+          SEMVER_TAG: ${{ needs.setup.outputs.semver_tag }}
           ECR_REGISTRY: ${{ steps.login_ecr.outputs.registry }}
           ECR_REPOSITORY: github-template-repository/helloworld
         run: |
@@ -159,21 +173,21 @@ jobs:
           docker tag ${{ env.local_docker_image }} $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push --all-tags $ECR_REGISTRY/$ECR_REPOSITORY
 
+
   # example terraform build stage
   terraform_account_build:
-    name: "Terraform Account [Apply: ${{ github.ref == 'refs/heads/main'}}]"
-    needs: [workspace_name, semver_tag, build_scan_push, tf_version]
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@v3.1.0
+    name: "Terraform Account [Apply: false ]"
+    needs:
+      - setup
+      - build_scan_push
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@v3.16.0
     with:
-      terraform_version: "${{ needs.tf_version.outputs.version}}"
+      terraform_apply: false
+      terraform_version: "${{ needs.setup.outputs.terraform_version }}"
       terraform_directory: "./terraform/account"
-      terraform_apply: ${{ github.ref == 'refs/heads/main' && true || false }}
-      # this would be replaced with the dynamic value from needs.workspace_name.output.name
-      # but we're just using sandbox account and single env, so use default
-      terraform_workspace: "default"
+      # this would be replaced with the dynamic value
+      terraform_workspace: ${{ needs.setup.outputs.terraform_workspace }}
       # normally would need some logic to decide this based on branch name etc
-      # - if its true we would then need to pass workspace_manager_aws_account_id &
-      #   workspace_manager_aws_iam_role as well
       is_ephemeral: false
     secrets:
       AWS_ACCESS_KEY_ID_ACTIONS: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -181,11 +195,15 @@ jobs:
       PAGERDUTY_TOKEN: "NONE"
       GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+
+  # final step
   end:
-    name: 'End of workflow'
+    name: 'End'
     runs-on: 'ubuntu-latest'
-    needs: [branch_name, workspace_name, semver_tag, build_scan_push, terraform_account_build]
+    needs:
+      - build_scan_push
+      - terraform_account_build
     steps:
-      - name: "End"
-        run: |
-          echo "Done"
+      - id: end
+        name: End
+        run: echo "End"
