@@ -5,9 +5,12 @@ on:
       - main
 
 permissions:
-  actions: read
   contents: write
   id-token: write
+  actions: read
+  checks: read
+  pull-requests: read
+  security-events: none
 
 env:
   PRERELEASE: "false"
