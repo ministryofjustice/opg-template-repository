@@ -60,11 +60,12 @@ jobs:
       terraform_version: ${{ needs.setup.outputs.terraform_version }}
   # tfsec for terraform
   tfsec:
-    needs: [terraform_lint]
+    needs: [setup, terraform_lint]
     name: "Run TFSec against the code base"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@v3.16.0
   # codeql for python
   codeql_analysis:
+    needs: [setup]
     name: "Run CodeQL against the code base"
     uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@v3.16.0
     with:
@@ -75,6 +76,7 @@ jobs:
     name: "Run Tests"
     needs:
       - setup
+      - codeql_analysis
       - terraform_lint
       - tfsec
     runs-on: ubuntu-latest
@@ -87,15 +89,13 @@ jobs:
   # Docker build, trivy scan, ECR push as a matrix
   # The matrix loops over each app to build in a complicated
   # structure
-  # ADD IN ECR PUSH
   build_scan_push:
     name: "Docker build, trivy scan, ECR push"
     runs-on: ubuntu-latest
     # require all steps before this matrix to have passed
     needs:
       - setup
-      - terraform_lint
-      - tfsec
+      - tests
     strategy:
       fail-fast: true
       matrix:
@@ -165,7 +165,7 @@ jobs:
       ######
       - name: Push Container
         env:
-          SEMVER_TAG: ${{ needs.semver_tag.outputs.tag }}
+          SEMVER_TAG: ${{ needs.setup.outputs.semver_tag }}
           ECR_REGISTRY: ${{ steps.login_ecr.outputs.registry }}
           ECR_REPOSITORY: github-template-repository/helloworld
         run: |
