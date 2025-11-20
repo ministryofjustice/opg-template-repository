@@ -32,7 +32,7 @@ jobs:
       # Check the code base
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # checkout self
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       # RUN TEST SUITE
       - run: echo "RUN TEST SUITE HERE"
 
@@ -108,7 +108,7 @@ jobs:
       local_docker_image: ${{ matrix.data.image_app_name }}:latest
       sarif_file: trivy-results.sarif
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       - name: Show environment values
         run: |
           echo "local_docker_image: ${{ env.local_docker_image }}"
@@ -204,7 +204,7 @@ jobs:
     steps:
       # checkout self
       - name: "Checkout"
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0
           fetch-tags: true
