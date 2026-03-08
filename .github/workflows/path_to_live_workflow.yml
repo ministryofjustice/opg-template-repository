@@ -150,7 +150,7 @@ jobs:
           format: 'sarif'
           output: ${{ env.sarif_file }}
       - name: Trivy scan upload to github
-        uses: github/codeql-action/upload-sarif@5d5cd550d3e189c569da8f16ea8de2d821c9bf7a # v3.31.2
+        uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98 # v4.32.6
         if: always()
         with:
           sarif_file: ${{ env.sarif_file }}
