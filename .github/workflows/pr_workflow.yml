@@ -34,20 +34,20 @@ jobs:
       # Check the code base
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0
           fetch-tags: true
       # Find the terraform version details for account & env
       - name: "Parse terraform account version"
         id: terraform_account_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@4f345be3f706950d1fdc05bc86383967a149bd99 # v4.3.4
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
         with:
           terraform_directory: ./terraform/account
       # semver tag
       - name: "Semver tag"
         id: "semver"
-        uses: ministryofjustice/opg-github-actions/actions/semver@4f345be3f706950d1fdc05bc86383967a149bd99 # v4.3.4
+        uses: ministryofjustice/opg-github-actions/actions/semver@b8868247a908f74fafe1905701391580575a6d35 # v4.3.10
         with:
           create_release: "false" # dont create the release at the moment
           prerelease: ${{ env.PRERELEASE }}
@@ -55,19 +55,19 @@ jobs:
   terraform_lint:
     name: "Terraform linting"
     needs: [setup]
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@361d19a6d7b291dab5d46f04765239341a4ca86b # v3.16.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@775636910c06dbeb813ab4d83b55142d1bb94d28 # v3.17.0
     with:
       terraform_version: ${{ needs.setup.outputs.terraform_version }}
   # tfsec for terraform
   tfsec:
     needs: [setup, terraform_lint]
     name: "Run TFSec against the code base"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@v3.16.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@v3.17.0
   # codeql for python
   codeql_analysis:
     needs: [setup]
     name: "Run CodeQL against the code base"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@v3.16.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@v3.17.0
     with:
       application_languages: '["python"]'
 
@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # checkout self
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       # RUN TEST SUITE
       - run: echo "RUN TEST SUITE HERE"
 
@@ -110,7 +110,7 @@ jobs:
       local_docker_image: ${{ matrix.data.image_app_name }}:latest
       sarif_file: trivy-results.sarif
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       - name: Show environment values
         run: |
           echo "local_docker_image: ${{ env.local_docker_image }}"
@@ -127,7 +127,7 @@ jobs:
           docker images
       # log in to ECR
       - name: Configure AWS Credentials With Assumed Role to Management
-        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -138,11 +138,11 @@ jobs:
           role-session-name: OPGExampleWorkflowGithubAction
       - name: ECR Login
         id: login_ecr
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+        uses: aws-actions/amazon-ecr-login@c962da2960ed15f492addc26fffa274485265950 # v2.0.2
         with:
           registries: 311462405659
       - name: Trivy scan
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         env:
           TRIVY_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-db:2
           TRIVY_JAVA_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-java-db:1
@@ -152,7 +152,7 @@ jobs:
           format: 'sarif'
           output: ${{ env.sarif_file }}
       - name: Trivy scan upload to github
-        uses: github/codeql-action/upload-sarif@5d5cd550d3e189c569da8f16ea8de2d821c9bf7a # v3.31.2
+        uses: github/codeql-action/upload-sarif@820e3160e279568db735cee8ed8f8e77a6da7818 # v3.32.6
         if: always()
         with:
           sarif_file: ${{ env.sarif_file }}
@@ -180,7 +180,7 @@ jobs:
     needs:
       - setup
       - build_scan_push
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@v3.16.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@v3.17.0
     with:
       terraform_apply: false
       terraform_version: "${{ needs.setup.outputs.terraform_version }}"
