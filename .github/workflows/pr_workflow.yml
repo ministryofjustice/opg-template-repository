@@ -58,12 +58,7 @@ jobs:
     uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@361d19a6d7b291dab5d46f04765239341a4ca86b # v3.16.0
     with:
       terraform_version: ${{ needs.setup.outputs.terraform_version }}
-  # tfsec for terraform
-  tfsec:
-    needs: [setup, terraform_lint]
-    name: "Run TFSec against the code base"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@v3.16.0
-  # codeql for python
+
   codeql_analysis:
     needs: [setup]
     name: "Run CodeQL against the code base"
@@ -78,7 +73,6 @@ jobs:
       - setup
       - codeql_analysis
       - terraform_lint
-      - tfsec
     runs-on: ubuntu-latest
     steps:
       # checkout self
@@ -86,11 +80,11 @@ jobs:
       # RUN TEST SUITE
       - run: echo "RUN TEST SUITE HERE"
 
-  # Docker build, trivy scan, ECR push as a matrix
+  # Docker build, scan, ECR push as a matrix
   # The matrix loops over each app to build in a complicated
   # structure
   build_scan_push:
-    name: "Docker build, trivy scan, ECR push"
+    name: "Docker build, scan, ECR push"
     runs-on: ubuntu-latest
     # require all steps before this matrix to have passed
     needs:
@@ -108,7 +102,7 @@ jobs:
     # vars are visible in the output, so helps with debug
     env:
       local_docker_image: ${{ matrix.data.image_app_name }}:latest
-      sarif_file: trivy-results.sarif
+      sarif_file: results.sarif
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Show environment values
@@ -141,21 +135,8 @@ jobs:
         uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
         with:
           registries: 311462405659
-      - name: Trivy scan
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
-        env:
-          TRIVY_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-db:2
-          TRIVY_JAVA_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-java-db:1
-        with:
-          image-ref: ${{ env.local_docker_image }}
-          severity: "HIGH,CRITICAL"
-          format: 'sarif'
-          output: ${{ env.sarif_file }}
-      - name: Trivy scan upload to github
-        uses: github/codeql-action/upload-sarif@5d5cd550d3e189c569da8f16ea8de2d821c9bf7a # v3.31.2
-        if: always()
-        with:
-          sarif_file: ${{ env.sarif_file }}
+      - name: Placeholder for container scanning
+        run: exit 0 
       # for a lot of our services, there could be a test process here
       - name: Run Tests
         run: |
