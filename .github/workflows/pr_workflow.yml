@@ -102,7 +102,7 @@ jobs:
     # vars are visible in the output, so helps with debug
     env:
       local_docker_image: ${{ matrix.data.image_app_name }}:latest
-      sarif_file: esults.sarif
+      sarif_file: results.sarif
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Show environment values
