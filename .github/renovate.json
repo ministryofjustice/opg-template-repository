@@ -11,7 +11,7 @@
       "groupName": "Minor & Patch Updates",
       "groupSlug": "all-minor-patch-updates",
       "matchUpdateTypes": ["minor", "patch"],
-      "minimumReleaseAge": "3 days",
+      "minimumReleaseAge": "7 days",
       "commitMessageSuffix": " #patch",
       "matchPackageNames": ["*"]
     }
