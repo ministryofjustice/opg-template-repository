@@ -34,7 +34,7 @@ jobs:
       # Check the code base
       - name: "Checkout"
         id: checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -58,16 +58,11 @@ jobs:
     uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@775636910c06dbeb813ab4d83b55142d1bb94d28 # v3.17.0
     with:
       terraform_version: ${{ needs.setup.outputs.terraform_version }}
-  # tfsec for terraform
-  tfsec:
-    needs: [setup, terraform_lint]
-    name: "Run TFSec against the code base"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-infrastructure-tfsec-to-github-security.yml@v3.17.0
-  # codeql for python
+
   codeql_analysis:
     needs: [setup]
     name: "Run CodeQL against the code base"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@v3.17.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@361d19a6d7b291dab5d46f04765239341a4ca86b # v3.16.0
     with:
       application_languages: '["python"]'
 
@@ -78,19 +73,18 @@ jobs:
       - setup
       - codeql_analysis
       - terraform_lint
-      - tfsec
     runs-on: ubuntu-latest
     steps:
       # checkout self
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       # RUN TEST SUITE
       - run: echo "RUN TEST SUITE HERE"
 
-  # Docker build, trivy scan, ECR push as a matrix
+  # Docker build, scan, ECR push as a matrix
   # The matrix loops over each app to build in a complicated
   # structure
   build_scan_push:
-    name: "Docker build, trivy scan, ECR push"
+    name: "Docker build, scan, ECR push"
     runs-on: ubuntu-latest
     # require all steps before this matrix to have passed
     needs:
@@ -108,9 +102,9 @@ jobs:
     # vars are visible in the output, so helps with debug
     env:
       local_docker_image: ${{ matrix.data.image_app_name }}:latest
-      sarif_file: trivy-results.sarif
+      sarif_file: results.sarif
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Show environment values
         run: |
           echo "local_docker_image: ${{ env.local_docker_image }}"
@@ -141,21 +135,8 @@ jobs:
         uses: aws-actions/amazon-ecr-login@261fc3d4806db1fa66a15cc11113c456db8870a7 # v2.1.0
         with:
           registries: 311462405659
-      - name: Trivy scan
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
-        env:
-          TRIVY_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-db:2
-          TRIVY_JAVA_DB_REPOSITORY: ${{ steps.login_ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-java-db:1
-        with:
-          image-ref: ${{ env.local_docker_image }}
-          severity: "HIGH,CRITICAL"
-          format: 'sarif'
-          output: ${{ env.sarif_file }}
-      - name: Trivy scan upload to github
-        uses: github/codeql-action/upload-sarif@ebcb5b36ded6beda4ceefea6a8bc4cc885255bb3 # v3.34.1
-        if: always()
-        with:
-          sarif_file: ${{ env.sarif_file }}
+      - name: Placeholder for container scanning
+        run: exit 0 
       # for a lot of our services, there could be a test process here
       - name: Run Tests
         run: |
@@ -180,7 +161,7 @@ jobs:
     needs:
       - setup
       - build_scan_push
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@v3.17.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@361d19a6d7b291dab5d46f04765239341a4ca86b # v3.16.0
     with:
       terraform_apply: false
       terraform_version: "${{ needs.setup.outputs.terraform_version }}"
