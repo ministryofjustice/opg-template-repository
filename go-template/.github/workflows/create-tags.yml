@@ -1,0 +1,34 @@
+name: Create Tag
+
+on:
+  workflow_call:
+    outputs:
+      tag:
+        description: "Semver Tag (the latest tag on a workflow dispatch)"
+        value: ${{ jobs.create_tag.outputs.tag }}
+      timestamp:
+        description: "timestamp"
+        value: ${{ jobs.create_tag.outputs.timestamp }}
+
+jobs:
+  create_tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+
+      - name: "Generate semver tag and release"
+        id: semver_tag
+        uses: ministryofjustice/opg-github-actions/actions/semver@5fba2afe28b31b8c5eaf1fb4235e2d32aea24a1e # v4.8.3
+        with:
+          create_release: false
+          default_bump: ${{ github.event_name == 'workflow_dispatch' && 'none' || 'minor' }}
+          prerelease: ${{ github.ref_name == 'main' && 'false' || 'true' }}
+
+      - name: Set Timestamp
+        id: timestamp
+        run: echo "timestamp=$(date +"%Y%m%d%H%M%S")" >> "$GITHUB_OUTPUT"
+    outputs:
+      tag: ${{ steps.semver_tag.outputs.tag }}
+      timestamp: ${{ steps.timestamp.outputs.timestamp }}
