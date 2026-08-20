@@ -1,16 +1,8 @@
-# OS
-.DS_STORE
-#  terraform
-**/.terraform/*
-*.tfstate
-*.tfstate.*
-*.tfvars
-secrets.auto.tfvars
-# editors
-.vscode/
-.idea
-*.iml
-# envs
-.env
-venv/
-env/
+.DS_Store
+*.log
+node_modules/
+web/static/
+test-results/
+tmp/
+coverage.out
+.idea/

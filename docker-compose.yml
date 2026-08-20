@@ -1,0 +1,30 @@
+services:
+  {{APP_NAME}}:
+    image: {{APP_NAME}}:local
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: prod
+    ports:
+      - "{{PORT}}:{{PORT}}"
+    read_only: false
+    environment:
+      PORT: {{PORT}}
+      PREFIX: {{URL_PREFIX}}
+      HEALTHCHECK: {{URL_PREFIX}}/health-check
+      SIRIUS_PUBLIC_URL: http://localhost:8080
+      BACKEND_URL: http://{{SERVICE_NAME}}-api:7171
+      JWT_SECRET: mysupersecrettestkeythatis128bits
+
+  yarn:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: asset-env
+    working_dir: /app
+    entrypoint: ["yarn"]
+    command: build
+    volumes:
+      - ./web:/app/web
+      - ./package.json:/app/package.json
+      - ./yarn.lock:/app/yarn.lock
