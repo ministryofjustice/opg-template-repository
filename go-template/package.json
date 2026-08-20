@@ -19,7 +19,7 @@
     "govuk-frontend": "^6.4.0",
     "htmx.org": "^2.0.10",
     "moment": "^2.30.1",
-    "opg-sirius-header": "https://github.com/ministryofjustice/opg-sirius-header/archive/refs/tags/v0.53.19.tar.gz"
+    "opg-sirius-header": "ministryofjustice/opg-sirius-header#semver:{{HEADER_VERSION}}"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
