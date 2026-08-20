@@ -1,0 +1,7 @@
+node_modules
+cypress/screenshots
+cypress/videos
+tmp
+main
+web/static
+
