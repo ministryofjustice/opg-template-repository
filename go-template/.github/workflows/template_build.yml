@@ -1,25 +1,25 @@
 #name: Test and Build
 
-on:
-  pull_request:
+#on:
+#  pull_request:
 #    branches:
 #      - main
-  push:
+#  push:
 #    branches:
 #      - main
-  workflow_dispatch:
-
-permissions:
-  contents: read
+#  workflow_dispatch:
+#
+#permissions:
+#  contents: read
 
 #defaults:
 #  run:
 #    shell: bash
-#
-jobs:
-  test:
-    name: Go tests
-    runs-on: ubuntu-latest
+
+#jobs:
+#  test:
+#    name: Go tests
+#    runs-on: ubuntu-latest
 #    steps:
 #      - name: Check out code
 #        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -33,7 +33,7 @@ jobs:
 #      - name: Run tests
 #        run: go test ./...
 
-## Job added in to pass build for this repo
+## This job has been added in to pass build for this repo
 #build_scan_push:
 #  name: "Docker build, scan, ECR push"
 #  runs-on: ubuntu-latest
