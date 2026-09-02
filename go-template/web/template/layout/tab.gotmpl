@@ -1,0 +1,15 @@
+{{ define "tab" }}
+<li class="moj-sub-navigation__item" data-cy="{{ .Id }}">
+    <a
+        class="moj-sub-navigation__link"
+        hx-get="{{ prefix .Path }}"
+        hx-target="#main-content"
+        hx-push-url="{{ prefix .Path }}"
+        {{ if .Selected }}
+        aria-current="page"
+        {{ end }}
+    >
+        {{ .Title }}
+    </a>
+</li>
+{{ end }}

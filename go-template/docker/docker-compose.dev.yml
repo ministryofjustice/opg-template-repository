@@ -1,0 +1,18 @@
+services:
+  {{APP_NAME}}:
+    build:
+      target: dev
+    ports:
+      - "{{PORT}}:{{PORT}}"
+      - "2345:2345"
+    volumes:
+      - ./.air.toml:/app/.air.toml
+      - ./go.mod:/app/go.mod
+      - ./go.sum:/app/go.sum
+      - ./main.go:/app/main.go
+      - ./internal:/app/internal
+      - ./web/static:/app/web/static
+      - ./web/template:/app/web/template
+
+	yarn:
+	 command: watch

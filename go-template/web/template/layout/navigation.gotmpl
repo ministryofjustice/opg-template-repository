@@ -1,0 +1,16 @@
+{{ define "navigation" }}
+    <div class="govuk-grid-row govuk-!-margin-top-5  govuk-!-margin-bottom-0">
+        <div class="govuk-grid-column-full">
+            <header>
+                <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">{{APP_TITLE}}</h1>
+            </header>
+            <nav class="moj-sub-navigation govuk-!-margin-bottom-5" aria-label="Secondary navigation">
+                <ul class="moj-sub-navigation__list">
+                    {{ range .Tabs }}
+                        {{ template "tab" . }}
+                    {{ end }}
+                </ul>
+            </nav>
+        </div>
+    </div>
+{{ end }}

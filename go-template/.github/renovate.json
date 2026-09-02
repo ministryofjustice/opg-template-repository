@@ -1,0 +1,54 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:recommended",
+        "docker:pinDigests",
+        "helpers:pinGitHubActionDigests",
+        "schedule:earlyMondays"
+    ],
+    "branchNameStrict": true,
+    "branchPrefix": "renovate-",
+    "commitMessageAction": "Renovate Update",
+    "labels": [
+        "Dependencies",
+        "Renovate"
+    ],
+    "configMigration": true,
+    "postUpdateOptions": ["gomodTidy"],
+    "minimumReleaseAge": "7 days",
+    "packageRules": [
+      {
+          "automerge": true,
+          "groupName": "Patch & Minor Updates",
+          "groupSlug": "all-minor-patch-updates",
+          "matchUpdateTypes": ["minor", "patch"],
+          "prPriority": 1,
+          "matchPackageNames": ["*"]
+      },
+      {
+          "automerge": true,
+          "groupName": "Github Patch & Minor Updates",
+          "groupSlug": "github-minor-patch-updates",
+          "matchUpdateTypes": ["minor", "patch"],
+          "prPriority": 2,
+          "matchPackageNames": ["*"],
+          "matchFileNames": [".github/**"]
+      }
+    ],
+    "major": {
+        "labels": [
+            "Dependencies",
+            "Renovate"
+        ]
+    },
+    "vulnerabilityAlerts": {
+        "groupName": "Vulnerability Patches",
+        "dependencyDashboardApproval": false,
+        "minimumReleaseAge": null,
+        "rangeStrategy": "update-lockfile",
+        "commitMessagePrefix": "[SECURITY]",
+        "branchTopic": "{{{datasource}}}-{{{depName}}}-vulnerability",
+        "prCreation": "immediate"
+  }
+}
+

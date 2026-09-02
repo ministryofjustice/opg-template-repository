@@ -1,0 +1,50 @@
+{{ define "error-summary" }}
+    <div id="error-summary">
+        {{ if .ValidationErrors }}
+            <div
+                    class="govuk-error-summary"
+                    aria-labelledby="error-summary-title"
+                    role="alert"
+                    tabindex="-1"
+                    data-module="govuk-error-summary">
+                <h2 class="govuk-error-summary__title" id="error-summary-title">
+                    There is a problem
+                </h2>
+                <div class="govuk-error-summary__body">
+                    <ul class="govuk-list govuk-error-summary__list">
+                        {{ range $k, $v := .ValidationErrors }}
+                            {{ range $v }}
+                                <li><a class="govuk-link" href="#f-{{ $k }}">{{ . }}</a></li>
+                            {{ end }}
+                        {{ end }}
+                    </ul>
+                </div>
+            </div>
+        {{ end }}
+        {{ if .Error }}
+            <div
+                    class="govuk-error-summary"
+                    aria-labelledby="error-summary-title"
+                    role="alert"
+                    tabindex="-1"
+                    data-module="govuk-error-summary">
+                <h2 class="govuk-error-summary__title" id="error-summary-title">
+                    There is a problem
+                </h2>
+                <div class="govuk-error-summary__body">
+                    {{ .Error }}
+                </div>
+            </div>
+        {{ end }}
+    </div>
+
+    {{ range $k, $v := .ValidationErrors }}
+        <span id="error-message__{{$k}}" hx-swap-oob="true">
+                {{ range $type, $error := $v }}
+                    <p id="name-error{{ if $type}}-{{ $type }}{{ end }}" class="govuk-error-message">
+                      <span class="govuk-visually-hidden">Error:</span> {{ $error }}
+                    </p>
+                {{ end }}
+        </span>
+    {{ end }}
+{{ end }}

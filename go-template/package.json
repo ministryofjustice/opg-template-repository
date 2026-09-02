@@ -1,0 +1,28 @@
+{
+  "name": "{{SERVICE_NAME}}",
+  "version": "1.0.0",
+  "description": "{{APP_TITLE}}: Managed by opg-org-infra & Terraform",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "build": "yarn build:js && yarn build:css && yarn build:images",
+    "build:js": "esbuild --bundle web/assets/main.js --minify --outfile=web/static/javascript/all.js --sourcemap --resolve-extensions=.mjs,.js",
+    "build:css": "sass --load-path=node_modules --load-path=. --style compressed web/assets/main.scss web/static/stylesheets/all.css",
+    "build:images": "mkdir -p web/static/assets/images && cp node_modules/govuk-frontend/dist/govuk/assets/images/* node_modules/@ministryofjustice/frontend/moj/assets/images/* web/static/assets/images",
+    "watch": "yarn build:images && yarn build:js --watch & yarn build:css --watch",
+    "clean": "rm -rf web/static",
+    "test": "go test ./..."
+  },
+  "dependencies": {
+    "@ministryofjustice/frontend": "^10.0.1",
+    "govuk-frontend": "^6.4.0",
+    "htmx.org": "^2.0.10",
+    "moment": "^2.30.1",
+    "opg-sirius-header": "ministryofjustice/opg-sirius-header#semver:{{HEADER_VERSION}}"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "sass": "^1.102.0"
+  }
+}
