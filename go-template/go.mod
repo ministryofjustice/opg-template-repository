@@ -1,4 +1,4 @@
-module {{MODULE_NAME}}
+module example_module
 
 go 1.26.2
 
