@@ -1,9 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": ["config:recommended", "docker:pinDigests"],
   "branchNameStrict": true,
   "branchPrefix": "renovate-",
   "configMigration": true,
+  "postUpdateOptions": ["gomodTidy"],
   "labels": ["Dependencies", "Renovate"],
   "prConcurrentLimit": 0,
   "packageRules": [
