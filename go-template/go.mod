@@ -1,11 +1,11 @@
-module {{MODULE_NAME}}
+module example_module
 
 go 1.26.2
 
 require (
-	github.com/ministryofjustice/opg-go-common v1.165.25
-	github.com/stretchr/testify v1.12.0
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0
+	github.com/ministryofjustice/opg-go-common v1.165.29
+	github.com/stretchr/testify v1.12.1
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa
 )
 
