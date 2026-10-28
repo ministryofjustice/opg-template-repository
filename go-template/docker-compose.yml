@@ -17,7 +17,7 @@ services:
       JWT_SECRET: mysupersecrettestkeythatis128bits
 
   watch-assets:
-    image: node:24-alpine3.23@sha256:0468540aa58203ff9e40c2aab3907c52644ab818af6176b1c70a026137dc92a2
+    image: node:26-alpine3.23@sha256:bc2b334006f15c7167bbeb2f08f28c2df883f7594a0470e04454ebe7560cfe68
     working_dir: /home/node/app
     entrypoint: ["sh"]
     volumes:
