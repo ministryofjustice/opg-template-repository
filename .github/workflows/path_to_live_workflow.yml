@@ -39,13 +39,13 @@ jobs:
       # Find the terraform version details for account & env
       - name: "Parse terraform account version"
         id: terraform_account_version
-        uses: ministryofjustice/opg-github-actions/actions/terraform-version@ae37b9b322286123971417e82b665e56e9d6aa3f # v4.10.3
+        uses: ministryofjustice/opg-github-actions/actions/terraform-version@4b7fc493a67f94cdd77a9246ee11fdadd0115554 # v4.10.4
         with:
           terraform_directory: ./terraform/account
       # semver tag
       - name: "Semver tag"
         id: "semver"
-        uses: ministryofjustice/opg-github-actions/actions/semver@ae37b9b322286123971417e82b665e56e9d6aa3f # v4.10.3
+        uses: ministryofjustice/opg-github-actions/actions/semver@4b7fc493a67f94cdd77a9246ee11fdadd0115554 # v4.10.4
         with:
           create_release: "false" # dont create the release at the moment
           prerelease: ${{ env.PRERELEASE }}
@@ -53,14 +53,14 @@ jobs:
   terraform_lint:
     name: "Terraform linting"
     needs: [setup]
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@84a762ecab4a2d6217be908505351fd1f9312319 # v3.19.19
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/linting-infrastructure-terraform.yml@9bc93159f1f753bc458df23d76b5480c7c87e0a9 # v3.19.20
     with:
       terraform_version: ${{ needs.setup.outputs.terraform_version }}
   # codeql for python
   codeql_analysis:
     needs: [setup]
     name: "Run CodeQL against the code base"
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@84a762ecab4a2d6217be908505351fd1f9312319 # v3.19.19
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/analysis-application-codeql-sast-to-github-security.yml@9bc93159f1f753bc458df23d76b5480c7c87e0a9 # v3.19.20
     with:
       application_languages: '["python"]'
 
@@ -159,7 +159,7 @@ jobs:
     needs:
       - setup
       - build_scan_push
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@84a762ecab4a2d6217be908505351fd1f9312319 # v3.19.19
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-infrastructure-terraform.yml@9bc93159f1f753bc458df23d76b5480c7c87e0a9 # v3.19.20
     with:
       terraform_apply: true
       terraform_version: "${{ needs.setup.outputs.terraform_version }}"
@@ -190,7 +190,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       - name: "Create release [${{ needs.setup.outputs.semver_tag }}]"
-        uses: ministryofjustice/opg-github-actions/actions/release@ae37b9b322286123971417e82b665e56e9d6aa3f # v4.10.3
+        uses: ministryofjustice/opg-github-actions/actions/release@4b7fc493a67f94cdd77a9246ee11fdadd0115554 # v4.10.4
         with:
           tag: ${{ needs.setup.outputs.semver_tag }}
           prerelease: ${{ env.PRERELEASE }}
